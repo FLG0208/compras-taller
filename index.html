@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sistema de Compras — Raul Allemanni & Cia S.R.L.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0f0f0f;--dark:#1a1a1a;--gray-800:#2c2c2c;--gray-600:#555;--gray-400:#888;
+  --gray-200:#d4d4d4;--gray-100:#f0f0ee;--gray-50:#f8f8f6;--white:#fff;
+  --red:#C41E1E;--red-light:#FBEAEA;--amber:#C47A00;--amber-light:#FDF3DC;
+  --green:#1A6B2E;--green-light:#E8F5EC;--blue:#1A4B8C;--blue-light:#E8EFFA;
+  --purple:#6B3FA0;--purple-light:#F5F0FF;--purple-border:#C4A8E8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;font-size:14px;background:var(--gray-50);color:var(--black);}
+
+.app-header{background:var(--black);padding:14px 20px;display:flex;align-items:center;gap:14px;}
+.logo-circle{width:38px;height:38px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-ra{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:1px;}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;}
+.header-sub{font-size:10px;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+
+.app{max-width:720px;margin:0 auto;padding-bottom:2rem;}
+
+.role-selector{background:var(--white);border-bottom:1px solid var(--gray-200);padding:12px 16px;}
+.role-label{font-size:9px;font-weight:700;color:var(--gray-400);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.role-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.role-btn{padding:6px 12px;border-radius:3px;border:1px solid var(--gray-200);background:var(--white);cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-600);display:flex;align-items:center;gap:5px;font-family:'Barlow',sans-serif;transition:all .15s;}
+.role-btn:hover{border-color:var(--gray-400);color:var(--black);}
+.role-btn.active{background:var(--black);color:#fff;border-color:var(--black);}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+.view{display:none;}.view.active{display:block;padding:16px;}
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:4px;padding:1.25rem;margin-bottom:10px;}
+.fr{margin-bottom:12px;}.fr label{display:block;font-size:10px;font-weight:700;color:var(--gray-400);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;}
+.fr input,.fr select,.fr textarea{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--gray-200);border-radius:3px;font-family:'Barlow',sans-serif;color:var(--black);}
+.fr input:focus,.fr select:focus{outline:none;border-color:var(--black);}
+
+.upload-area{border:1.5px dashed var(--gray-200);border-radius:4px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px;background:var(--gray-50);}
+.upload-area:hover,.upload-area.drag{border-color:var(--black);background:var(--gray-100);}
+.upload-area.loading{border-color:var(--amber);background:var(--amber-light);}
+.upload-area.done{border-color:var(--green);background:var(--green-light);}
+.upload-icon{font-size:1.75rem;margin-bottom:6px;}
+.upload-txt{font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:3px;}
+.upload-sub{font-size:11px;color:var(--gray-400);}
+input[type=file]{display:none;}
+
+.extracted{background:var(--green-light);border:1px solid #a8d8b4;border-radius:4px;padding:12px;margin-bottom:12px;}
+.extracted-title{font-size:9px;font-weight:700;color:var(--green);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.extracted-row{display:flex;gap:8px;margin-bottom:4px;font-size:12px;}
+.extracted-label{color:var(--gray-600);min-width:80px;flex-shrink:0;font-weight:600;}
+.extracted-val{color:var(--black);font-weight:500;}
+
+.franjas{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;}
+.franja-btn{padding:10px 8px;border-radius:3px;border:1px solid var(--gray-200);cursor:pointer;font-size:12px;font-weight:700;background:var(--white);color:var(--gray-600);text-align:center;line-height:1.3;font-family:'Barlow',sans-serif;transition:all .15s;}
+.franja-btn .fsub{font-size:10px;font-weight:400;opacity:.7;display:block;margin-top:2px;}
+.franja-btn.sel-ya{background:var(--red);color:#fff;border-color:var(--red);}
+.franja-btn.sel-medio{background:var(--amber);color:#fff;border-color:var(--amber);}
+.franja-btn.sel-tarde{background:var(--blue);color:#fff;border-color:var(--blue);}
+.franja-btn.sel-manana{background:var(--green);color:#fff;border-color:var(--green);}
+
+.pbts{display:flex;gap:6px;margin-top:4px;}
+.pbt{flex:1;padding:9px 4px;border-radius:3px;border:1px solid var(--gray-200);cursor:pointer;font-size:12px;font-weight:700;background:var(--white);color:var(--gray-600);font-family:'Barlow',sans-serif;transition:all .15s;}
+.pbt.sel-alta{background:var(--red);color:#fff;border-color:var(--red);}
+.pbt.sel-media{background:var(--amber);color:#fff;border-color:var(--amber);}
+.pbt.sel-baja{background:var(--green);color:#fff;border-color:var(--green);}
+
+.btn-main{width:100%;padding:12px;border-radius:3px;background:var(--black);border:none;font-size:13px;font-weight:700;cursor:pointer;color:#fff;margin-top:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:background .15s;}
+.btn-main:hover{background:var(--gray-800);}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem;}
+.stat{background:var(--white);border:1px solid var(--gray-200);border-radius:4px;padding:12px 14px;}
+.stat-num{font-size:22px;font-weight:800;font-family:'Barlow Condensed',sans-serif;}
+.stat-label{font-size:10px;color:var(--gray-400);margin-top:2px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
+.fbtn{padding:5px 12px;border-radius:3px;border:1px solid var(--gray-200);background:var(--white);cursor:pointer;font-size:11px;font-weight:700;color:var(--gray-600);font-family:'Barlow',sans-serif;transition:all .15s;}
+.fbtn:hover{border-color:var(--gray-400);}
+.fbtn.active{background:var(--black);color:#fff;border-color:var(--black);}
+
+.oc-card{background:var(--white);border:1px solid var(--gray-200);border-radius:4px;padding:1rem 1.25rem;margin-bottom:8px;transition:box-shadow .15s;}
+.oc-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.oc-card.alta{border-left:3px solid var(--red);}
+.oc-card.media{border-left:3px solid var(--amber);}
+.oc-card.baja{border-left:3px solid var(--green);}
+.oc-card.nodisponible{border-left:3px solid var(--gray-400);}
+.oc-card.comprado{border-left:3px solid var(--green);opacity:.6;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px;}
+.card-oc{font-size:13px;font-weight:700;color:var(--black);}
+.badges{display:flex;gap:3px;flex-wrap:wrap;flex-shrink:0;}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:.3px;text-transform:uppercase;}
+.b-alta{background:var(--red-light);color:var(--red);}
+.b-media{background:var(--amber-light);color:var(--amber);}
+.b-baja{background:var(--green-light);color:var(--green);}
+.b-planif{background:var(--blue-light);color:var(--blue);}
+.b-pendiente{background:var(--blue-light);color:var(--blue);}
+.b-camino{background:var(--amber-light);color:var(--amber);}
+.b-comprado{background:var(--green-light);color:var(--green);}
+.b-nodisponible{background:var(--gray-100);color:var(--gray-600);}
+.b-ya{background:var(--red-light);color:var(--red);}
+.b-medio{background:var(--amber-light);color:var(--amber);}
+.b-tarde{background:var(--blue-light);color:var(--blue);}
+.b-manana{background:var(--purple-light);color:var(--purple);}
+.b-ext{background:#FFF3DC;color:#854F00;border:1px solid #EFB84A;}
+.b-dud{background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);}
+
+.card-meta{font-size:11px;color:var(--gray-400);margin-bottom:3px;display:flex;align-items:center;gap:5px;font-weight:500;}
+.card-items{font-size:12px;color:var(--gray-600);margin-top:3px;line-height:1.6;}
+.card-alerta{font-size:12px;color:var(--red);margin-top:6px;background:var(--red-light);padding:6px 10px;border-radius:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:500;}
+.card-dud{font-size:12px;color:var(--purple);margin-top:6px;background:var(--purple-light);padding:6px 10px;border-radius:3px;font-weight:500;border:1px solid var(--purple-border);}
+.card-nota{font-size:12px;color:var(--green);margin-top:5px;background:var(--green-light);padding:5px 10px;border-radius:3px;font-weight:500;}
+.card-footer{font-size:10px;color:var(--gray-400);margin-top:6px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.card-actions{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+
+.btn-sm{padding:6px 12px;border-radius:3px;border:1px solid var(--gray-200);background:var(--white);cursor:pointer;font-size:11px;font-weight:700;color:var(--gray-600);font-family:'Barlow',sans-serif;transition:all .15s;}
+.btn-sm:hover{background:var(--gray-100);}
+.btn-sm.danger{border-color:#f0a0a0;color:var(--red);}.btn-sm.danger:hover{background:var(--red-light);}
+.btn-sm.success{border-color:#90c4a0;color:var(--green);}.btn-sm.success:hover{background:var(--green-light);}
+.btn-sm.wpp{background:#E7F5E7;color:#1A6B1A;border-color:#7DBF7D;font-weight:700;}
+.btn-sm.wpp:hover{background:#D2EDD2;}
+.btn-sm.dud{border-color:var(--purple-border);color:var(--purple);}
+.btn-sm.dud:hover{background:var(--purple-light);}
+
+.prio-sel,.franja-sel{font-size:11px;font-weight:600;padding:6px 8px;border-radius:3px;border:1px solid var(--gray-200);background:var(--gray-50);color:var(--black);cursor:pointer;font-family:'Barlow',sans-serif;}
+.av{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:800;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;}
+.empty{text-align:center;padding:2.5rem;color:var(--gray-400);font-size:13px;font-weight:500;}
+.sec-title{font-size:9px;font-weight:700;color:var(--gray-400);margin:1rem 0 6px;text-transform:uppercase;letter-spacing:2px;}
+.franja-div{font-size:9px;font-weight:800;margin:14px 0 6px;text-transform:uppercase;letter-spacing:2px;padding-bottom:6px;border-bottom:1px solid var(--gray-200);}
+
+.banner{border-radius:4px;padding:10px 14px;margin-bottom:10px;}
+.banner.red{background:var(--red-light);border:1px solid #f0a0a0;}
+.banner.purple{background:var(--purple-light);border:1px solid var(--purple-border);}
+.banner-title{font-size:13px;font-weight:700;}
+.banner-title.red{color:var(--red);}
+.banner-title.purple{color:var(--purple);}
+.banner-sub{font-size:11px;margin-top:2px;}
+.banner-sub.red{color:#8B1A1A;}
+.banner-sub.purple{color:var(--purple);}
+
+.ruta-btn{width:100%;padding:12px;border-radius:3px;background:var(--black);border:none;font-size:12px;font-weight:700;color:#fff;margin-bottom:12px;text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:background .15s;}
+.ruta-btn:hover{background:var(--gray-800);}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--black);color:#fff;padding:10px 20px;border-radius:3px;font-size:12px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--amber);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.api-key-banner{background:var(--blue-light);border:1px solid #a0bcdf;border-radius:4px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--blue);line-height:1.6;}
+.api-key-banner strong{display:block;margin-bottom:6px;font-size:13px;font-weight:700;}
+.api-key-banner a{color:var(--blue);font-weight:600;}
+.api-key-row{display:flex;gap:6px;margin-top:8px;}
+.api-key-row input{flex:1;font-size:12px;padding:7px 9px;border:1px solid #a0bcdf;border-radius:3px;background:#fff;font-family:'Barlow',sans-serif;}
+.api-key-row button{padding:7px 14px;border-radius:3px;border:1px solid #a0bcdf;background:#fff;cursor:pointer;font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;font-family:'Barlow',sans-serif;}
+
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:4px;padding:1.5rem;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.modal-sub{font-size:12px;color:var(--gray-600);margin-bottom:12px;line-height:1.6;}
+.modal-prov{font-size:13px;font-weight:700;background:var(--gray-100);padding:8px 12px;border-radius:3px;margin-bottom:14px;}
+.modal-btns{display:flex;flex-direction:column;gap:8px;}
+.modal-btn{padding:12px 14px;border-radius:3px;border:1px solid var(--gray-200);background:#fff;cursor:pointer;font-size:12px;font-weight:700;font-family:'Barlow',sans-serif;text-align:left;transition:all .15s;}
+.modal-btn:hover{background:var(--gray-100);}
+.modal-btn.local{background:var(--black);color:#fff;border-color:var(--black);}
+.modal-btn.local:hover{background:var(--gray-800);}
+.modal-btn.ext{border-color:#EFB84A;color:#854F00;}
+.modal-btn.ext:hover{background:var(--amber-light);}
+.modal-btn.dud{border-color:var(--purple-border);color:var(--purple);}
+.modal-btn.dud:hover{background:var(--purple-light);}
+.modal-btn small{display:block;font-weight:400;font-size:10px;opacity:.7;margin-top:2px;letter-spacing:0;text-transform:none;}
+
+.footer{text-align:center;padding:20px;font-size:10px;color:#aaa;letter-spacing:1px;font-family:'Barlow',sans-serif;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="logo-circle"><span class="logo-ra">RA</span></div>
+  <div>
+    <div class="header-title">Raul Allemanni & Cia S.R.L.</div>
+    <div class="header-sub">Sistema de Compras — Taller</div>
+  </div>
+</div>
+
+<div class="app">
+  <div id="toast" class="toast"></div>
+
+  <div class="role-selector">
+    <div class="role-label">¿Quién sos?</div>
+    <div class="role-btns" id="role-btns"></div>
+  </div>
+
+  <div id="view-carga"    class="view"></div>
+  <div id="view-coord"    class="view"></div>
+  <div id="view-guillermo" class="view"></div>
+  <div id="view-control"  class="view"></div>
+</div>
+
+<div class="footer">Desarrollado por Federico Lerda &nbsp;·&nbsp; Raul Allemanni & Cia S.R.L. © 2026</div>
+
+<!-- Modal clasificar OC -->
+<div class="modal-overlay" id="modal-oc">
+  <div class="modal">
+    <div class="modal-title">⚠️ Clasificar OC</div>
+    <div class="modal-sub">No pudimos identificar el tipo de compra. Por favor clasificá para que llegue a quien corresponde.</div>
+    <div class="modal-prov" id="modal-prov"></div>
+    <div class="modal-btns">
+      <button class="modal-btn local" onclick="confirmarTipo('local')">
+        📍 Local / Retiro por compras
+        <small>Guillermo va a buscarlo</small>
+      </button>
+      <button class="modal-btn ext" onclick="confirmarTipo('externa')">
+        ✈️ Externa / Envío o gestión administrativa
+        <small>ML, BsAs, transferencia</small>
+      </button>
+      <button class="modal-btn dud" onclick="confirmarTipo('dudosa')">
+        ❓ No estoy seguro — clasificar después
+        <small>Quedará pendiente de clasificación</small>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ── FIREBASE ──────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAEayoV_v9QdE-tUQs1KERyo5WcNW9Ew9k",
+  authDomain: "compras-taller.firebaseapp.com",
+  projectId: "compras-taller",
+  storageBucket: "compras-taller.firebasestorage.app",
+  messagingSenderId: "54415442344",
+  appId: "1:54415442344:web:8c93801bcf0d34447f5d9d"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function hoy(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');}
+
+async function guardarOC(oc){
+  try{ await db.collection('ocs').doc(String(oc.id)).set({...oc}); }
+  catch(e){ console.error('Error guardando OC:',e); }
+}
+async function actualizarOC(id,datos){
+  try{ await db.collection('ocs').doc(String(id)).update(datos); }
+  catch(e){ console.error('Error actualizando OC:',e); }
+}
+function escucharOCs(){
+  db.collection('ocs').where('fecha_carga','==',hoy())
+    .onSnapshot(snap=>{
+      ocs=snap.docs.map(d=>d.data());
+      renderView();
+    },err=>console.error(err));
+}
+
+// ── GEMINI ───────────────────────────────────────────────────
+let GEMINI_KEY = localStorage.getItem('gemini_key')||'';
+
+function guardarKey(){
+  const v=document.getElementById('kf').value.trim();
+  if(!v)return;
+  GEMINI_KEY=v;localStorage.setItem('gemini_key',v);toast('API key guardada');renderView();
+}
+
+async function leerPDF(file){
+  const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+  const prompt=`De esta Orden de Compra argentina extraé los datos y respondé SOLO en este formato exacto, sin texto extra:\nNUMERO_OC: (número completo de la OC)\nPROVEEDOR: (razón social del proveedor)\nFECHA: (fecha de emisión dd/mm/yyyy)\nITEMS: (todos los items en una línea separados por " | ", con cantidad y descripción)\nTIPO: (escribí SOLO una de estas palabras: LOCAL si el proveedor opera en Neuquén, Plottier o Cipolletti / EXTERNA si es de otra provincia, Mercado Libre, o empresa nacional / DUDOSA si no podés determinarlo)`;
+  const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:'application/pdf',data:b64}},{text:prompt}]}],generationConfig:{temperature:0,maxOutputTokens:512}})
+  });
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'Error de API');}
+  const d=await resp.json();
+  const txt=d.candidates[0].content.parts[0].text.trim();
+  const get=(k)=>{const m=txt.match(new RegExp(k+':\\s*(.+)'));return m?m[1].trim():'';};
+  const tipoRaw=get('TIPO').toUpperCase();
+  const tipoDetectado=tipoRaw.includes('LOCAL')?'local':tipoRaw.includes('EXTERNA')?'externa':'dudosa';
+  return {numero_oc:get('NUMERO_OC'),proveedor:get('PROVEEDOR'),fecha_emision:get('FECHA'),items:get('ITEMS'),tipoGemini:tipoDetectado};
+}
+
+async function handlePDF(file){
+  if(!file||file.type!=='application/pdf'){alert('Seleccioná un PDF.');return;}
+  if(!GEMINI_KEY){alert('Falta la API key.');return;}
+  const area=document.getElementById('upload-area');
+  area.className='upload-area loading';
+  area.innerHTML='<div class="upload-icon"><span class="spinner"></span></div><div class="upload-txt">Leyendo la OC...</div>';
+  try{
+    const pdfData=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
+    extracted=await leerPDF(file);
+    extracted.pdfData=pdfData;extracted.pdfName=file.name;
+    area.className='upload-area done';
+    area.innerHTML=`<div class="upload-icon">✅</div><div class="upload-txt" style="color:var(--green);">OC leída correctamente</div><div class="upload-sub" style="color:var(--green);">${extracted.numero_oc} — ${extracted.proveedor}</div>`;
+    const ep=document.getElementById('ep');
+    if(ep){ep.style.display='block';ep.innerHTML=`<div class="extracted-title">Datos extraídos</div>
+      <div class="extracted-row"><span class="extracted-label">N° OC:</span><span class="extracted-val">${extracted.numero_oc}</span></div>
+      <div class="extracted-row"><span class="extracted-label">Proveedor:</span><span class="extracted-val">${extracted.proveedor}</span></div>
+      <div class="extracted-row"><span class="extracted-label">Fecha:</span><span class="extracted-val">${extracted.fecha_emision}</span></div>
+      <div class="extracted-row"><span class="extracted-label">Items:</span><span class="extracted-val">${extracted.items}</span></div>`;}
+  }catch(e){
+    area.className='upload-area';
+    area.innerHTML=`<div class="upload-icon">⚠️</div><div class="upload-txt">Error: ${e.message}</div><div class="upload-sub">Intentá de nuevo</div>`;
+    extracted=null;
+  }
+}
+
+// ── DETECCIÓN LOCAL/EXTERNA ───────────────────────────────────
+const LOCALES=['fadat','movimiento mecanico','movimiento mecánico','gotlip','gotlib','feadar','equipel','don carlos','aceros sanchez','aceros sánchez','ferreteria industrial','ferretería industrial','rodamiento sur','rodamientos sur','dalleva','la casa de las herramientas','casa de las herramientas','scanmar','mil bulones','metalurgica rivas','metalúrgica rivas','aceros del sur','distribuidora sur','tecnorepuestos','insumos del sur','repuestos diaz','repuestos díaz','bonavota'];
+const EXTERNOS=['mercadolibre','mercado libre','amazon','ebay','buenos aires','caba','córdoba','cordoba','rosario','mendoza','brasil','import'];
+
+function detectarTipo(proveedor){
+  const p=proveedor.toLowerCase();
+  for(const e of EXTERNOS) if(p.includes(e)) return 'externa';
+  for(const l of LOCALES) if(p.includes(l)) return 'local';
+  if(p.match(/\b(011|0351|0261|0341|0223)\b/)) return 'externa';
+  return 'dudosa';
+}
+
+let pendienteOC=null;
+
+function confirmarTipo(tipo){
+  if(!pendienteOC)return;
+  pendienteOC.tipoCompra=tipo;
+  document.getElementById('modal-oc').classList.remove('show');
+  procesarCarga(pendienteOC);
+  pendienteOC=null;
+}
+
+function clasificar(id,tipo){
+  const o=ocs.find(x=>x.id===id);if(!o)return;
+  o.tipoCompra=tipo;
+  actualizarOC(id,{tipoCompra:tipo});
+  toast(tipo==='local'?'OC clasificada como local — va a Guillermo':'OC clasificada como externa');
+  renderView();
+}
+
+// ── PERSONAS ─────────────────────────────────────────────────
+const PERSONAS={
+  'Juanjo':   {sector:'Mecánica',           color:'#FCEBEB',tc:'#A32D2D',prio:'alta', planif:false,rol:'carga'},
+  'Pablo':    {sector:'Tornería',           color:'#FAEEDA',tc:'#854F0B',prio:'media',planif:true, rol:'carga'},
+  'Javier':   {sector:'Soldadura',          color:'#FAECE7',tc:'#993C1D',prio:'media',planif:true, rol:'carga'},
+  'Valeria':  {sector:'Administración',     color:'#FBEAF0',tc:'#993556',prio:'baja', planif:false,rol:'carga'},
+  'Joaquín':  {sector:'Pañol',             color:'#EAF3DE',tc:'#3B6D11',prio:'baja', planif:false,rol:'carga'},
+  'Ariel':    {sector:'Cardán / Repuestos', color:'#FAEEDA',tc:'#633806',prio:'baja', planif:false,rol:'carga'},
+  'María':    {sector:'Compras / Insumos',  color:'#E1F5EE',tc:'#085041',prio:'media',planif:false,rol:'carga_coord'},
+  'Gerónimo': {sector:'Compras / Insumos',  color:'#E1F5EE',tc:'#085041',prio:'media',planif:false,rol:'carga_coord'},
+  'Guillermo':{sector:'Compras externas',   color:'#E6F1FB',tc:'#185FA5',prio:'alta', planif:false,rol:'guillermo'},
+  'Federico': {sector:'Control general',    color:'#EEEDFE',tc:'#534AB7',prio:'alta', planif:false,rol:'control'},
+  'Bruno':    {sector:'Gerencia',           color:'#1a1a1a',tc:'#ffffff',prio:'alta', planif:false,rol:'control'},
+  'Raúl':     {sector:'Gerencia',           color:'#2c2c2c',tc:'#ffffff',prio:'media',planif:false,rol:'carga'},
+  'Pedro':    {sector:'Gerencia',           color:'#3c3c3c',tc:'#ffffff',prio:'media',planif:false,rol:'carga'},
+};
+
+const FRANJAS={
+  ya:    {label:'Ir y volver',      sub:'Ahora mismo',           cls:'b-ya',    tc:'#C41E1E'},
+  medio: {label:'Para el mediodía', sub:'Antes de las 12',       cls:'b-medio', tc:'#C47A00'},
+  tarde: {label:'Para la tarde',    sub:'Antes de fin de turno', cls:'b-tarde', tc:'#1A4B8C'},
+  manana:{label:'Mañana',           sub:'No es urgente hoy',     cls:'b-manana',tc:'#534AB7'},
+};
+const ESTADOS={
+  pendiente:   {label:'Pendiente',              cls:'b-pendiente'},
+  camino:      {label:'En camino',              cls:'b-camino'},
+  camino2:     {label:'Camino a otro proveedor',cls:'b-camino'},
+  comprado:    {label:'Comprado',               cls:'b-comprado'},
+  nodisponible:{label:'Sin stock',              cls:'b-nodisponible'},
+};
+const oP={alta:0,media:1,baja:2},oF={ya:0,medio:1,tarde:2,manana:3},oE={pendiente:0,camino:1,camino2:1,nodisponible:2,manana:3,comprado:4};
+
+let rol='Juanjo',prio='',franja='',filtro='todas',extracted=null,ocs=[];
+
+// ── HELPERS ──────────────────────────────────────────────────
+function ini(n){return n.slice(0,2).toUpperCase();}
+function av(nombre){const p=PERSONAS[nombre]||{color:'#E6F1FB',tc:'#185FA5'};return`<span class="av" style="background:${p.color};color:${p.tc};">${ini(nombre)}</span>`;}
+function now(){const n=new Date();return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function ftag(f){const fr=FRANJAS[f]||FRANJAS.manana;return`<span class="badge ${fr.cls}">${fr.label}</span>`;}
+function tipoBadge(o){if(o.tipoCompra==='externa')return'<span class="badge b-ext">Externa</span>';if(o.tipoCompra==='dudosa')return'<span class="badge b-dud">Sin clasificar</span>';return'';}
+
+function keyBanner(){
+  if(GEMINI_KEY)return'';
+  return`<div class="api-key-banner"><strong>🔑 API Key de Google requerida (100% gratis)</strong>Entrá a <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a> y copiá tu key.<div class="api-key-row"><input type="password" id="kf" placeholder="AIza..."/><button onclick="guardarKey()">Guardar</button></div></div>`;
+}
+
+// ── WHATSAPP ─────────────────────────────────────────────────
+function wppMsg(o){
+  const f=FRANJAS[o.franja]||FRANJAS.manana;
+  const e={alta:'🔴',media:'🟡',baja:'🟢'}[o.prio];
+  return encodeURIComponent(`${e} *Sin stock — ${f.label}*\n\nHola ${o.sup}, fui al proveedor pero no había stock.\n\n*OC:* ${o.oc} / ${o.proveedor}\n*Items:* ${o.items}\n*Necesidad:* ${f.label}\n\n¿Cómo seguimos?`);
+}
+function abrirWpp(id){
+  const o=ocs.find(x=>x.id===id);if(!o)return;
+  o.notifEnviada=true;actualizarOC(id,{notifEnviada:true});
+  window.open(`https://wa.me/?text=${wppMsg(o)}`,'_blank');
+  toast('Abriendo WhatsApp...');renderView();
+}
+
+// ── RUTA ─────────────────────────────────────────────────────
+const TALLER={lat:-38.9640,lng:-68.0580,dir:'Teodoro Planas 5275, Neuquén'};
+const PROVS_DB={
+  'fadat':{dir:'Leguizamón 317, Neuquén',lat:-38.9585,lng:-68.0681},
+  'movimiento mecanico':{dir:'Planas 653, Neuquén',lat:-38.9591,lng:-68.0684},
+  'movimiento mecánico':{dir:'Planas 653, Neuquén',lat:-38.9591,lng:-68.0684},
+  'gotlip':{dir:'Perticone 685, Neuquén',lat:-38.9598,lng:-68.0495},
+  'gotlib':{dir:'Perticone 685, Neuquén',lat:-38.9598,lng:-68.0495},
+  'feadar':{dir:'Ruta 22, Cipolletti',lat:-38.9522,lng:-67.9936},
+  'equipel':{dir:'San Martín 2322, Neuquén',lat:-38.9535,lng:-68.0268},
+  'don carlos':{dir:'Goya 235, Neuquén',lat:-38.9571,lng:-68.1408},
+  'aceros sanchez':{dir:'Obligado 1890, Plottier',lat:-38.9299,lng:-68.2032},
+  'aceros sánchez':{dir:'Obligado 1890, Plottier',lat:-38.9299,lng:-68.2032},
+  'ferreteria industrial':{dir:'Misiones 482, Neuquén',lat:-38.9601,lng:-68.0634},
+  'ferretería industrial':{dir:'Misiones 482, Neuquén',lat:-38.9601,lng:-68.0634},
+  'rodamiento sur':{dir:'San Martín 1328, Neuquén',lat:-38.9592,lng:-68.0406},
+  'rodamientos sur':{dir:'San Martín 1328, Neuquén',lat:-38.9592,lng:-68.0406},
+  'dalleva':{dir:'Planas 907, Neuquén',lat:-38.9590,lng:-68.0720},
+  'la casa de las herramientas':{dir:'Lastra 860, Neuquén',lat:-38.9599,lng:-68.0714},
+  'casa de las herramientas':{dir:'Lastra 860, Neuquén',lat:-38.9599,lng:-68.0714},
+  'scanmar':{dir:'San Martín 800, Neuquén',lat:-38.9592,lng:-68.0478},
+  'mil bulones':{dir:'Chaneton 225, Neuquén',lat:-38.9585,lng:-68.0650},
+  'bonavota':{dir:'Neuquén',lat:-38.9580,lng:-68.0600},
+};
+
+function buscarProv(texto){
+  const t=texto.toLowerCase();
+  for(const[k,v] of Object.entries(PROVS_DB)) if(t.includes(k)) return{...v,nombre:texto};
+  return null;
+}
+
+function abrirRuta(){
+  const activas=ocs.filter(o=>o.estado!=='comprado'&&o.tipoCompra!=='externa'&&o.tipoCompra!=='dudosa');
+  if(!activas.length){toast('No hay OC activas para rutear');return;}
+  const mapa=new Map();
+  activas.forEach(o=>{const p=buscarProv(o.proveedor||'');if(p&&!mapa.has(p.dir))mapa.set(p.dir,p);});
+  if(!mapa.size){toast('No se reconocieron proveedores para la ruta');return;}
+  const provs=[...mapa.values()].sort((a,b)=>{
+    const dA=Math.sqrt(Math.pow(a.lat-TALLER.lat,2)+Math.pow(a.lng-TALLER.lng,2));
+    const dB=Math.sqrt(Math.pow(b.lat-TALLER.lat,2)+Math.pow(b.lng-TALLER.lng,2));
+    return dA-dB;
+  });
+  const origen=encodeURIComponent(TALLER.dir);
+  const destino=encodeURIComponent(provs[provs.length-1].dir);
+  const wps=provs.slice(0,-1).map(p=>encodeURIComponent(p.dir)).join('|');
+  let url=`https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
+  if(wps) url+=`&waypoints=${wps}`;
+  window.open(url,'_blank');
+  toast(`Ruta con ${provs.length} parada${provs.length>1?'s':''} abierta`);
+}
+
+// ── ACCIONES ─────────────────────────────────────────────────
+function selP(p){prio=p;document.querySelectorAll('.pbt').forEach(b=>{b.className='pbt';if(b.dataset.p===p)b.classList.add('sel-'+p);});}
+function selF(f){franja=f;document.querySelectorAll('.franja-btn').forEach(b=>{b.className='franja-btn';if(b.dataset.f===f)b.classList.add('sel-'+f);});}
+function filtrar(f,btn){filtro=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderView();}
+function setRol(n){rol=n;prio='';franja='';filtro='todas';extracted=null;renderRoleBtns();renderView();}
+
+function cambiarEstado(id,est){
+  const o=ocs.find(x=>x.id===id);if(!o)return;
+  o.estado=est;
+  let alerta=null;
+  if(est==='nodisponible'){o.alerta='Sin stock en proveedor. Notificar al supervisor.';o.notifEnviada=false;alerta=o.alerta;}
+  else if(est==='camino2'){o.alerta='Sin stock en primer proveedor. En camino a alternativo.';alerta=o.alerta;}
+  else if(est==='manana'){o.alerta='No se pudo comprar hoy. Pasa para mañana.';alerta=o.alerta;}
+  else{delete o.alerta;}
+  actualizarOC(id,{estado:est,alerta:alerta||null,notifEnviada:o.notifEnviada||false});
+  renderView();
+}
+function cambiarPrio(id,p){const o=ocs.find(x=>x.id===id);if(o){o.prio=p;actualizarOC(id,{prio:p});renderView();}}
+function cambiarFranja(id,f){const o=ocs.find(x=>x.id===id);if(o){o.franja=f;actualizarOC(id,{franja:f});renderView();}}
+function guardarNota(id){const o=ocs.find(x=>x.id===id);const el=document.getElementById('n'+id);if(o&&el){o.nota=el.value;actualizarOC(id,{nota:el.value});renderView();}}
+function descargarPDF(id){const o=ocs.find(x=>x.id===id);if(!o||!o.pdfData){toast('PDF no disponible');return;}const a=document.createElement('a');a.href=o.pdfData;a.download=o.pdfName||o.oc+'.pdf';a.click();}
+
+function cargarOC(){
+  if(!extracted){alert('Primero subí el PDF.');return;}
+  if(!franja){alert('Seleccioná cuándo se necesita.');return;}
+  if(!prio){alert('Seleccioná la prioridad.');return;}
+  const p=PERSONAS[rol];
+  const datos={id:Date.now(),sup:rol,sector:p.sector,oc:extracted.numero_oc,proveedor:extracted.proveedor,items:extracted.items,prio,planif:p.planif,franja,estado:'pendiente',hora:now(),nota:'',notifEnviada:false,pdfData:extracted.pdfData||null,pdfName:extracted.pdfName||null,fecha_carga:hoy()};
+  // Usar detección de Gemini si está disponible, sino usar la local
+  const tipo=extracted.tipoGemini||detectarTipo(extracted.proveedor);
+  if(tipo==='local'){
+    datos.tipoCompra='local';procesarCarga(datos);
+  } else if(tipo==='externa'){
+    datos.tipoCompra='externa';
+    if(confirm(`"${extracted.proveedor}" fue identificado como proveedor EXTERNO.\n\nEsta OC NO irá a la lista de Guillermo.\n\n¿Confirmás?`)){procesarCarga(datos);}
+  } else {
+    datos.tipoCompra='dudosa';pendienteOC=datos;
+    document.getElementById('modal-prov').textContent=extracted.proveedor;
+    document.getElementById('modal-oc').classList.add('show');
+  }
+}
+
+function procesarCarga(datos){
+  ocs.unshift(datos);guardarOC(datos);
+  extracted=null;prio='';franja='';
+  renderView();
+  if(datos.tipoCompra==='externa') toast('OC externa cargada — seguimiento administrativo');
+  else if(datos.tipoCompra==='dudosa') toast('OC cargada — pendiente de clasificación');
+  else toast('OC cargada ✓');
+}
+
+// ── CARDS ────────────────────────────────────────────────────
+function ocCard(o,editable){
+  const est=ESTADOS[o.estado]||ESTADOS.pendiente;
+  const pc={alta:'b-alta',media:'b-media',baja:'b-baja'}[o.prio];
+  const pl={alta:'Alta',media:'Media',baja:'Baja'}[o.prio];
+  const bc=o.estado==='nodisponible'?'nodisponible':o.estado==='comprado'?'comprado':o.prio;
+  let acc='';
+  if(editable){
+    acc=`<select class="prio-sel" onchange="cambiarPrio(${o.id},this.value)">
+      <option value="alta"${o.prio==='alta'?' selected':''}>Alta</option>
+      <option value="media"${o.prio==='media'?' selected':''}>Media</option>
+      <option value="baja"${o.prio==='baja'?' selected':''}>Baja</option>
+    </select>
+    <select class="franja-sel" onchange="cambiarFranja(${o.id},this.value)">
+      ${Object.entries(FRANJAS).map(([k,v])=>`<option value="${k}"${o.franja===k?' selected':''}>${v.label}</option>`).join('')}
+    </select>`;
+    if(editable==='full'){
+      acc+=`<select class="prio-sel" onchange="cambiarEstado(${o.id},this.value)">
+        ${Object.entries(ESTADOS).map(([k,v])=>`<option value="${k}"${o.estado===k?' selected':''}>${v.label}</option>`).join('')}
+      </select>
+      <input id="n${o.id}" type="text" placeholder="Nota..." value="${o.nota||''}" style="flex:1;font-size:12px;min-width:80px;padding:5px 8px;border:1px solid var(--gray-200);border-radius:3px;font-family:Barlow,sans-serif;"/>
+      <button class="btn-sm" onclick="guardarNota(${o.id})">Guardar</button>
+      <button class="btn-sm dud" onclick="clasificar(${o.id},'local')" title="Clasificar como local">📍</button>
+      <button class="btn-sm" style="border-color:#EFB84A;color:#854F00;" onclick="clasificar(${o.id},'externa')" title="Clasificar como externa">✈️</button>`;
+    }
+  }
+  const alHtml=o.alerta?`<div class="card-alerta"><span>${o.alerta}</span></div>`:'';
+  const dudHtml=o.tipoCompra==='dudosa'&&editable==='self'?`<div class="card-dud">❓ Sin clasificar — <button class="btn-sm dud" style="padding:3px 8px;margin-left:4px;" onclick="clasificar(${o.id},'local')">📍 Local</button> <button class="btn-sm" style="border-color:#EFB84A;color:#854F00;padding:3px 8px;" onclick="clasificar(${o.id},'externa')">✈️ Externa</button></div>`:'';
+  return`<div class="oc-card ${bc}">
+    <div class="card-top"><span class="card-oc">${o.oc} / ${o.proveedor}</span>
+      <div class="badges"><span class="badge ${pc}">${pl}</span>${ftag(o.franja)}${o.planif?'<span class="badge b-planif">Planif.</span>':''}${tipoBadge(o)}<span class="badge ${est.cls}">${est.label}</span>${o.notifEnviada?'<span class="badge b-comprado">WPP ✓</span>':''}</div>
+    </div>
+    <div class="card-meta">${av(o.sup)} ${o.sup} · ${o.sector} · ${o.hora}</div>
+    <div class="card-items">${o.items||''}</div>
+    ${alHtml}${dudHtml}
+    ${o.nota?`<div class="card-nota">📋 ${o.nota}</div>`:''}
+    <div class="card-footer">Cargada: ${o.hora}</div>
+    ${acc?`<div class="card-actions">${acc}</div>`:''}
+  </div>`;
+}
+
+function guillermoCard(o){
+  const bc=o.estado==='nodisponible'?'nodisponible':o.estado==='comprado'?'comprado':o.prio;
+  const pc={alta:'b-alta',media:'b-media',baja:'b-baja'}[o.prio];
+  const pl={alta:'Alta',media:'Media',baja:'Baja'}[o.prio];
+  let btns='';
+  if(o.estado==='pendiente'||o.estado==='manana')
+    btns=`<button class="btn-sm" style="flex:1;padding:9px;font-size:12px;font-weight:700;" onclick="cambiarEstado(${o.id},'camino')">Salgo a buscarlo</button>`;
+  else if(o.estado==='camino')
+    btns=`<button class="btn-sm success" style="flex:1;padding:9px;font-size:12px;font-weight:700;" onclick="cambiarEstado(${o.id},'comprado')">Comprado ✓</button>
+          <button class="btn-sm danger" style="flex:1;padding:9px;font-size:12px;font-weight:700;" onclick="cambiarEstado(${o.id},'nodisponible')">Sin stock</button>`;
+  else if(o.estado==='nodisponible')
+    btns=`<button class="btn-sm wpp" style="flex:1;padding:9px;font-size:12px;" onclick="abrirWpp(${o.id})">${o.notifEnviada?'Reenviar WPP':'Notificar WPP'}</button>
+          <button class="btn-sm" style="flex:1;padding:9px;font-size:12px;font-weight:700;" onclick="cambiarEstado(${o.id},'camino2')">Camino a otro proveedor</button>
+          <button class="btn-sm" style="padding:9px;font-size:12px;" onclick="cambiarEstado(${o.id},'manana')">Mañana</button>`;
+  else if(o.estado==='camino2')
+    btns=`<button class="btn-sm success" style="flex:1;padding:9px;font-size:12px;font-weight:700;" onclick="cambiarEstado(${o.id},'comprado')">Comprado ✓</button>
+          <button class="btn-sm danger" style="flex:1;padding:9px;font-size:12px;font-weight:700;" onclick="cambiarEstado(${o.id},'nodisponible')">Sin stock de nuevo</button>`;
+  const pdfBtn=o.pdfData?`<button class="btn-sm" style="padding:9px;font-size:12px;" onclick="descargarPDF(${o.id})">📄 OC</button>`:'';
+  return`<div class="oc-card ${bc}">
+    <div class="card-top"><span class="card-oc">${o.oc} / ${o.proveedor}</span>
+      <div class="badges"><span class="badge ${pc}">${pl}</span>${ftag(o.franja)}<span class="badge ${ESTADOS[o.estado].cls}">${ESTADOS[o.estado].label}</span>${o.notifEnviada?'<span class="badge b-comprado">WPP ✓</span>':''}</div>
+    </div>
+    <div class="card-meta">${o.sector} · ${o.sup} · ${o.hora}</div>
+    <div class="card-items" style="margin-bottom:8px;">${o.items||''}</div>
+    ${o.nota?`<div class="card-nota">📋 ${o.nota}</div>`:''}
+    ${o.alerta?`<div class="card-alerta"><span>${o.alerta}</span></div>`:''}
+    <div class="card-actions">${btns}${pdfBtn}</div>
+  </div>`;
+}
+
+function formCarga(){
+  const p=PERSONAS[rol];
+  return`<div class="card">
+    ${keyBanner()}
+    <div class="fr"><label>1. Subí el PDF de la OC</label>
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('pfi').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="event.preventDefault();this.classList.remove('drag');handlePDF(event.dataTransfer.files[0])">
+        <div class="upload-icon">📄</div><div class="upload-txt">Tocá para subir la OC en PDF</div><div class="upload-sub">O arrastrá el archivo acá</div>
+      </div>
+      <input type="file" id="pfi" accept=".pdf" onchange="handlePDF(this.files[0])"/>
+    </div>
+    <div class="extracted" id="ep" style="display:none;"></div>
+    <div class="fr"><label>2. ¿Cuándo se necesita?</label>
+      <div class="franjas">${Object.entries(FRANJAS).map(([k,v])=>`<button class="franja-btn" data-f="${k}" onclick="selF('${k}')">${v.label}<span class="fsub">${v.sub}</span></button>`).join('')}</div>
+    </div>
+    <div class="fr"><label>3. Prioridad ${p.prio==='alta'?'<span style="font-size:10px;color:var(--red);">(Alta por defecto)</span>':''}</label>
+      <div class="pbts">
+        <button class="pbt${p.prio==='alta'?' sel-alta':''}" data-p="alta" onclick="selP('alta')">Alta</button>
+        <button class="pbt${p.prio==='media'?' sel-media':''}" data-p="media" onclick="selP('media')">Media</button>
+        <button class="pbt${p.prio==='baja'?' sel-baja':''}" data-p="baja" onclick="selP('baja')">Baja</button>
+      </div>
+    </div>
+    <button class="btn-main" onclick="cargarOC()">Cargar OC al sistema</button>
+  </div>`;
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+function renderRoleBtns(){
+  document.getElementById('role-btns').innerHTML=Object.entries(PERSONAS).map(([n,p])=>
+    `<button class="role-btn${n===rol?' active':''}" onclick="setRol('${n}')">
+      <span class="dot" style="background:${p.tc};${p.tc==='#ffffff'?'border:1px solid #555;':''}"></span>${n}
+    </button>`).join('');
+}
+
+function showOnly(v){
+  ['carga','coord','guillermo','control'].forEach(id=>{
+    const el=document.getElementById('view-'+id);
+    if(el) el.classList.toggle('active',id===v);
+  });
+}
+
+function renderView(){
+  const p=PERSONAS[rol];
+  const sorted=(list)=>[...list].sort((a,b)=>oE[a.estado]-oE[b.estado]||oF[a.franja]-oF[b.franja]||oP[a.prio]-oP[b.prio]);
+
+  // ── VISTA SUPERVISOR (carga) ──
+  if(p.rol==='carga'||p.rol==='carga_coord'){
+    const misOCs=ocs.filter(o=>o.sup===rol);
+    const misDudosas=misOCs.filter(o=>o.tipoCompra==='dudosa'&&o.estado!=='comprado');
+    const misActivas=sorted(misOCs.filter(o=>o.estado!=='comprado'&&o.tipoCompra!=='dudosa'));
+    const alertas=misOCs.filter(o=>o.alerta&&o.tipoCompra!=='dudosa');
+
+    let html='';
+    alertas.forEach(o=>{html+=`<div class="banner red"><div class="banner-title red">⚠️ Tu OC tiene un problema</div><div class="banner-sub red">${o.oc} — ${o.alerta}</div></div>`;});
+    if(misDudosas.length){
+      html+=`<div class="banner purple"><div class="banner-title purple">❓ Tenés OC sin clasificar (${misDudosas.length})</div>`;
+      misDudosas.forEach(o=>{html+=`<div style="margin-top:8px;padding:8px;background:#fff;border-radius:3px;border:1px solid var(--purple-border);"><div style="font-size:12px;font-weight:600;color:var(--black);margin-bottom:6px;">${o.oc} / ${o.proveedor}</div><div style="display:flex;gap:6px;"><button class="btn-sm dud" onclick="clasificar(${o.id},'local')">📍 Local</button><button class="btn-sm" style="border-color:#EFB84A;color:#854F00;" onclick="clasificar(${o.id},'externa')">✈️ Externa</button></div></div>`;});
+      html+='</div>';
+    }
+    html+=formCarga();
+    html+=`<div class="sec-title">Mis OC activas hoy</div>`;
+    html+=misActivas.length?misActivas.map(o=>ocCard(o,'self')).join(''):'<div class="empty">No tenés OC activas.</div>';
+    // Si es carga_coord, agregar tablero de coordinación debajo
+    if(p.rol==='carga_coord'){
+      let listaCoord=sorted(ocs); // incluye todas: locales, externas, dudosas
+      const dudosasCoord=ocs.filter(o=>o.tipoCompra==='dudosa');
+      html+=`<div class="sec-title" style="margin-top:1.5rem;">Tablero de coordinación</div>
+      ${dudosasCoord.length?`<div class="banner purple"><div class="banner-title purple">❓ ${dudosasCoord.length} OC sin clasificar</div></div>`:''}
+      <div class="stats">
+        <div class="stat"><div class="stat-num">${ocs.filter(o=>o.estado!=='comprado').length}</div><div class="stat-label">Pendientes</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--red)">${ocs.filter(o=>o.franja==='ya'&&o.estado!=='comprado').length}</div><div class="stat-label">Ir y volver</div></div>
+        <div class="stat"><div class="stat-num" style="color:#854F00">${ocs.filter(o=>o.tipoCompra==='externa').length}</div><div class="stat-label">Externas</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--green)">${ocs.filter(o=>o.estado==='comprado').length}</div><div class="stat-label">Compradas</div></div>
+      </div>
+      <div class="filters">
+        <button class="fbtn active" onclick="this.parentElement.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('coord-lista').innerHTML=sorted(ocs).map(o=>ocCard(o,'full')).join('')||'<div class=empty>Sin OC</div>';">Todas</button>
+        <button class="fbtn" onclick="this.parentElement.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('coord-lista').innerHTML=sorted(ocs).filter(o=>o.tipoCompra==='externa').map(o=>ocCard(o,'full')).join('')||'<div class=empty>Sin externas</div>';">Externas</button>
+        <button class="fbtn" onclick="this.parentElement.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('coord-lista').innerHTML=sorted(ocs).filter(o=>o.tipoCompra==='dudosa').map(o=>ocCard(o,'full')).join('')||'<div class=empty>Sin dudosas</div>';">Sin clasificar</button>
+        <button class="fbtn" onclick="this.parentElement.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('coord-lista').innerHTML=sorted(ocs).filter(o=>o.tipoCompra!=='externa'&&o.tipoCompra!=='dudosa').map(o=>ocCard(o,'full')).join('')||'<div class=empty>Sin locales</div>';">Locales</button>
+      </div>
+      <div id="coord-lista">${listaCoord.length?listaCoord.map(o=>ocCard(o,'full')).join(''):'<div class="empty">No hay OC cargadas aún.</div>'}</div>`;
+    }
+    document.getElementById('view-carga').innerHTML=html;
+    showOnly('carga');
+  }
+
+  // ── VISTA COORDINACIÓN (María, Gerónimo) ──
+  else if(p.rol==='coord'){
+    let lista=sorted(ocs);
+    if(filtro==='alta') lista=lista.filter(o=>o.prio==='alta');
+    else if(filtro==='media') lista=lista.filter(o=>o.prio==='media');
+    else if(filtro==='baja') lista=lista.filter(o=>o.prio==='baja');
+    else if(filtro==='ya') lista=lista.filter(o=>o.franja==='ya');
+    else if(filtro==='planif') lista=lista.filter(o=>o.planif);
+    else if(filtro==='alerta') lista=lista.filter(o=>o.alerta);
+    else if(filtro==='externa') lista=lista.filter(o=>o.tipoCompra==='externa');
+    else if(filtro==='dudosa') lista=lista.filter(o=>o.tipoCompra==='dudosa');
+
+    const dudosas=ocs.filter(o=>o.tipoCompra==='dudosa');
+    let html='';
+    if(dudosas.length) html+=`<div class="banner purple"><div class="banner-title purple">❓ ${dudosas.length} OC sin clasificar</div><div class="banner-sub purple">Estas OC no están en la lista de Guillermo hasta que se clasifiquen.</div></div>`;
+    html+=formCarga();
+    html+=`<div class="stats">
+      <div class="stat"><div class="stat-num">${ocs.filter(o=>o.estado!=='comprado').length}</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--red)">${ocs.filter(o=>o.franja==='ya'&&o.estado!=='comprado').length}</div><div class="stat-label">Ir y volver</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--gray-600)">${ocs.filter(o=>o.estado==='nodisponible').length}</div><div class="stat-label">Sin stock</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--green)">${ocs.filter(o=>o.estado==='comprado').length}</div><div class="stat-label">Compradas</div></div>
+    </div>
+    <div class="filters">
+      <button class="fbtn${filtro==='todas'?' active':''}" onclick="filtrar('todas',this)">Todas</button>
+      <button class="fbtn${filtro==='ya'?' active':''}" onclick="filtrar('ya',this)">Ir y volver</button>
+      <button class="fbtn${filtro==='alta'?' active':''}" onclick="filtrar('alta',this)">Alta</button>
+      <button class="fbtn${filtro==='media'?' active':''}" onclick="filtrar('media',this)">Media</button>
+      <button class="fbtn${filtro==='baja'?' active':''}" onclick="filtrar('baja',this)">Baja</button>
+      <button class="fbtn${filtro==='planif'?' active':''}" onclick="filtrar('planif',this)">Planificables</button>
+      <button class="fbtn${filtro==='alerta'?' active':''}" onclick="filtrar('alerta',this)">Con alertas</button>
+      <button class="fbtn${filtro==='externa'?' active':''}" onclick="filtrar('externa',this)">Externas</button>
+      <button class="fbtn${filtro==='dudosa'?' active':''}" onclick="filtrar('dudosa',this)">Sin clasificar</button>
+    </div>`;
+    html+=lista.length?lista.map(o=>ocCard(o,'full')).join(''):'<div class="empty">No hay OC para mostrar.</div>';
+    document.getElementById('view-coord').innerHTML=html;
+    showOnly('coord');
+  }
+
+  // ── VISTA GUILLERMO ──
+  else if(p.rol==='guillermo'){
+    const activas=sorted(ocs.filter(o=>o.estado!=='comprado'&&o.tipoCompra!=='externa'&&o.tipoCompra!=='dudosa'));
+    const compradas=ocs.filter(o=>o.estado==='comprado');
+    const sinStock=activas.filter(o=>o.estado==='nodisponible');
+
+    let html=`<div class="stats">
+      <div class="stat"><div class="stat-num">${activas.length}</div><div class="stat-label">A resolver</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--red)">${activas.filter(o=>o.franja==='ya').length}</div><div class="stat-label">Ir y volver</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--gray-600)">${sinStock.length}</div><div class="stat-label">Sin stock</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--green)">${compradas.length}</div><div class="stat-label">Listas</div></div>
+    </div>
+    <button class="ruta-btn" onclick="abrirRuta()">🗺️ Ver ruta del día en Google Maps</button>`;
+
+    if(sinStock.length) html+=`<div class="banner red"><div class="banner-title red">${sinStock.length} OC sin stock — notificar al supervisor</div><div class="banner-sub red">Usá el botón WPP en cada tarjeta.</div></div>`;
+
+    const grupos=Object.entries(FRANJAS).map(([k,fr])=>{
+      const g=activas.filter(o=>o.franja===k);
+      if(!g.length)return'';
+      return`<div class="franja-div" style="color:${fr.tc};">${fr.label} — ${fr.sub}</div>${g.map(o=>guillermoCard(o)).join('')}`;
+    }).join('');
+
+    html+=grupos||'<div class="empty">Todo comprado por hoy 🎉</div>';
+    if(compradas.length) html+=`<div class="franja-div" style="color:var(--green);margin-top:1.5rem;">Compradas hoy</div>${compradas.map(o=>guillermoCard(o)).join('')}`;
+    document.getElementById('view-guillermo').innerHTML=html;
+    showOnly('guillermo');
+  }
+
+  // ── VISTA CONTROL (Federico, Bruno) ──
+  else if(p.rol==='control'){
+    let lista=sorted(ocs);
+    if(filtro==='alta') lista=lista.filter(o=>o.prio==='alta');
+    else if(filtro==='media') lista=lista.filter(o=>o.prio==='media');
+    else if(filtro==='baja') lista=lista.filter(o=>o.prio==='baja');
+    else if(filtro==='ya') lista=lista.filter(o=>o.franja==='ya');
+    else if(filtro==='alerta') lista=lista.filter(o=>o.alerta);
+    else if(filtro==='externa') lista=lista.filter(o=>o.tipoCompra==='externa');
+    else if(filtro==='dudosa') lista=lista.filter(o=>o.tipoCompra==='dudosa');
+    else if(filtro==='comprado') lista=lista.filter(o=>o.estado==='comprado');
+
+    const dudosas=ocs.filter(o=>o.tipoCompra==='dudosa');
+    let html='';
+    if(dudosas.length) html+=`<div class="banner purple"><div class="banner-title purple">❓ ${dudosas.length} OC sin clasificar — requieren atención</div><div class="banner-sub purple">No están en la lista de Guillermo hasta clasificarlas.</div></div>`;
+    html+=formCarga();
+    html+=`<div class="stats">
+      <div class="stat"><div class="stat-num">${ocs.filter(o=>o.estado!=='comprado').length}</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--red)">${ocs.filter(o=>o.franja==='ya'&&o.estado!=='comprado').length}</div><div class="stat-label">Ir y volver</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--gray-600)">${ocs.filter(o=>o.estado==='nodisponible').length}</div><div class="stat-label">Sin stock</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--green)">${ocs.filter(o=>o.estado==='comprado').length}</div><div class="stat-label">Compradas</div></div>
+    </div>
+    <div class="filters">
+      <button class="fbtn${filtro==='todas'?' active':''}" onclick="filtrar('todas',this)">Todas</button>
+      <button class="fbtn${filtro==='ya'?' active':''}" onclick="filtrar('ya',this)">Ir y volver</button>
+      <button class="fbtn${filtro==='alta'?' active':''}" onclick="filtrar('alta',this)">Alta</button>
+      <button class="fbtn${filtro==='media'?' active':''}" onclick="filtrar('media',this)">Media</button>
+      <button class="fbtn${filtro==='baja'?' active':''}" onclick="filtrar('baja',this)">Baja</button>
+      <button class="fbtn${filtro==='alerta'?' active':''}" onclick="filtrar('alerta',this)">Con alertas</button>
+      <button class="fbtn${filtro==='externa'?' active':''}" onclick="filtrar('externa',this)">Externas</button>
+      <button class="fbtn${filtro==='dudosa'?' active':''}" onclick="filtrar('dudosa',this)">Sin clasificar</button>
+      <button class="fbtn${filtro==='comprado'?' active':''}" onclick="filtrar('comprado',this)">Compradas</button>
+    </div>`;
+    html+=lista.length?lista.map(o=>ocCard(o,'full')).join(''):'<div class="empty">No hay OC cargadas aún.</div>';
+    document.getElementById('view-control').innerHTML=html;
+    showOnly('control');
+  }
+}
+
+window.addEventListener('load',()=>{
+  renderRoleBtns();
+  renderView();
+  setTimeout(escucharOCs,500);
+});
+</script>
+</body>
+</html>
