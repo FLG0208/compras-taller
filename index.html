@@ -743,7 +743,7 @@ function ocCard(o,editable){
       <div class="badges"><span class="badge ${pc}">${pl}</span>${ftag(o.franja)}${o.planif?'<span class="badge b-planif">Planif.</span>':''}${tipoBadge(o)}<span class="badge ${est.cls}">${est.label}</span>${o.notifEnviada?'<span class="badge b-comprado">WPP ✓</span>':''}</div>
     </div>
     <div class="card-meta">${av(o.sup)} ${o.sup} · ${o.sector} · ${o.hora}</div>
-    <div class="card-items">${o.items||''}</div>
+    <div class="card-items">${o.Items||o.items||''}</div>
     ${alHtml}${dudHtml}
     ${o.nota?`<div class="card-nota">📋 ${o.nota}</div>`:''}
     <div class="card-footer">Cargada: ${o.hora}${o.fuentePW?' · Puente Web':''}</div>
@@ -774,7 +774,7 @@ function guillermoCard(o){
       <div class="badges"><span class="badge ${pc}">${pl}</span>${ftag(o.franja)}<span class="badge ${ESTADOS[o.estado].cls}">${ESTADOS[o.estado].label}</span>${o.notifEnviada?'<span class="badge b-comprado">WPP ✓</span>':''}${o.fuentePW?'<span class="badge b-pw">PW</span>':''}</div>
     </div>
     <div class="card-meta">${o.sector} · ${o.sup} · ${o.hora}</div>
-    <div class="card-items" style="margin-bottom:8px;">${o.items||''}</div>
+    <div class="card-items" style="margin-bottom:8px;">${o.Items||o.items||''}</div>
     ${o.nota?`<div class="card-nota">📋 ${o.nota}</div>`:''}
     ${o.alerta?`<div class="card-alerta"><span>${o.alerta}</span></div>`:''}
     <div class="card-actions">${btns}${pdfBtn}</div>
