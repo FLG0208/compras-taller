@@ -359,7 +359,7 @@ function pwOCaOC(pwOC, franja, supOverride){
     sector: pwOC.Sector || p.sector,
     oc: pwOC.Numero || pwOC.pwKey,
     proveedor: pwOC.NombreCliente || '',
-    items: pwOC.Notas || '',
+    items: pwOC.Items || pwOC.Notas || '',
     prio: p.prio || 'media',
     planif: p.planif || false,
     franja: franja || 'manana',
