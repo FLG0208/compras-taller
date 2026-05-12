@@ -106,6 +106,7 @@ input[type=file]{display:none;}
 .b-manana{background:var(--purple-light);color:var(--purple);}
 .b-ext{background:#FFF3DC;color:#854F00;border:1px solid #EFB84A;}
 .b-dud{background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);}
+.b-pw{background:#E8F0FE;color:#1A4B8C;border:1px solid #a0bcdf;}
 
 .card-meta{font-size:11px;color:var(--gray-400);margin-bottom:3px;display:flex;align-items:center;gap:5px;font-weight:500;}
 .card-items{font-size:12px;color:var(--gray-600);margin-top:3px;line-height:1.6;}
@@ -133,12 +134,26 @@ input[type=file]{display:none;}
 .banner{border-radius:4px;padding:10px 14px;margin-bottom:10px;}
 .banner.red{background:var(--red-light);border:1px solid #f0a0a0;}
 .banner.purple{background:var(--purple-light);border:1px solid var(--purple-border);}
+.banner.blue{background:var(--blue-light);border:1px solid #a0bcdf;}
 .banner-title{font-size:13px;font-weight:700;}
 .banner-title.red{color:var(--red);}
 .banner-title.purple{color:var(--purple);}
+.banner-title.blue{color:var(--blue);}
 .banner-sub{font-size:11px;margin-top:2px;}
 .banner-sub.red{color:#8B1A1A;}
 .banner-sub.purple{color:var(--purple);}
+.banner-sub.blue{color:var(--blue);}
+
+/* Banner OC nuevas de PW parpadeante */
+.banner-pw-new{
+  background:var(--blue-light);border:1px solid #a0bcdf;border-radius:4px;
+  padding:10px 14px;margin-bottom:10px;
+  animation: pulseBlue 1.5s ease-in-out 3;
+}
+@keyframes pulseBlue{
+  0%,100%{background:var(--blue-light);}
+  50%{background:#d0e4f7;}
+}
 
 .ruta-btn{width:100%;padding:12px;border-radius:3px;background:var(--black);border:none;font-size:12px;font-weight:700;color:#fff;margin-bottom:12px;text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;transition:background .15s;}
 .ruta-btn:hover{background:var(--gray-800);}
@@ -171,6 +186,15 @@ input[type=file]{display:none;}
 .modal-btn.dud{border-color:var(--purple-border);color:var(--purple);}
 .modal-btn.dud:hover{background:var(--purple-light);}
 .modal-btn small{display:block;font-weight:400;font-size:10px;opacity:.7;margin-top:2px;letter-spacing:0;text-transform:none;}
+
+/* Modal PW OC */
+.pw-oc-list{max-height:300px;overflow-y:auto;margin-bottom:12px;}
+.pw-oc-item{padding:10px 12px;border:1px solid var(--gray-200);border-radius:3px;margin-bottom:6px;cursor:pointer;transition:all .15s;}
+.pw-oc-item:hover{border-color:var(--black);background:var(--gray-50);}
+.pw-oc-item.sel{border-color:var(--black);background:var(--gray-100);}
+.pw-oc-num{font-size:13px;font-weight:700;color:var(--black);}
+.pw-oc-prov{font-size:12px;color:var(--gray-600);margin-top:2px;}
+.pw-oc-meta{font-size:10px;color:var(--gray-400);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
 
 .footer{text-align:center;padding:20px;font-size:10px;color:#aaa;letter-spacing:1px;font-family:'Barlow',sans-serif;text-transform:uppercase;}
 </style>
@@ -224,6 +248,23 @@ input[type=file]{display:none;}
   </div>
 </div>
 
+<!-- Modal OC desde Puente Web -->
+<div class="modal-overlay" id="modal-pw">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">📋 OC de Puente Web</div>
+    <div class="modal-sub">Seleccioná la OC aprobada que querés agregar al sistema de compras de hoy.</div>
+    <div class="pw-oc-list" id="pw-oc-list"></div>
+    <div id="pw-franja-sel" style="display:none;margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:var(--gray-400);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">¿Cuándo se necesita?</div>
+      <div class="franjas" id="pw-franjas"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn local" onclick="confirmarPW()">Agregar al sistema de hoy</button>
+      <button class="modal-btn" onclick="cerrarModalPW()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
@@ -255,6 +296,172 @@ function escucharOCs(){
       ocs=snap.docs.map(d=>d.data());
       renderView();
     },err=>console.error(err));
+}
+
+// ── INTEGRACIÓN PUENTE WEB ────────────────────────────────────
+// IDs de OC de PW ya importadas hoy (para no mostrarlas de nuevo)
+let pwImportadasHoy = new Set();
+
+// Escucha en tiempo real la colección ordenesCompra
+// Detecta OC nuevas aprobadas que aún no están en 'ocs' de hoy
+let ocsPW = []; // OC disponibles desde PW
+let ocsPWNuevas = []; // OC de PW no importadas aún
+
+function escucharOCsPW(){
+  // Calcular fecha de hace 2 días para no traer historia muy vieja
+  const hace2dias = new Date();
+  hace2dias.setDate(hace2dias.getDate() - 2);
+  const fechaStr = hace2dias.toISOString().split('T')[0];
+
+  db.collection('ordenesCompra')
+    .where('FechaOrdenCompra', '>=', fechaStr + 'T00:00:00')
+    .onSnapshot(snap => {
+      ocsPW = snap.docs.map(d => ({pwKey: d.id, ...d.data()}));
+      // Filtrar las que ya están importadas hoy
+      actualizarPWNuevas();
+    }, err => console.error('Error escuchando PW:', err));
+}
+
+function actualizarPWNuevas(){
+  // IDs de OC de PW que ya están en ocs de hoy
+  const idsEnUso = new Set(ocs.filter(o=>o.pwKey).map(o=>o.pwKey));
+  ocsPWNuevas = ocsPW.filter(o => !idsEnUso.has(o.pwKey));
+  renderView();
+}
+
+// Mapeo de vendedor PW -> persona del sistema
+function mapearVendedor(vendedor){
+  if(!vendedor) return null;
+  const v = vendedor.toLowerCase();
+  if(v.includes('cordoba') || v.includes('juan jose')) return 'Juanjo';
+  if(v.includes('omar') || v.includes('pablo')) return 'Pablo';
+  if(v.includes('vetancur') || v.includes('joaquin') || v.includes('joaquín')) return 'Joaquín';
+  if(v.includes('laya') || v.includes('valeria') || v.includes('maria fernanda')) return 'Valeria';
+  if(v.includes('allemanni') && v.includes('raul')) return 'Raúl';
+  if(v.includes('allemanni') && v.includes('pedro')) return 'Pedro';
+  if(v.includes('cabezas') || v.includes('monica') || v.includes('mónica')) return 'María';
+  if(v.includes('mariani') || v.includes('mancilla') || v.includes('lopez') || v.includes('santander')) return 'María';
+  return null;
+}
+
+// Convertir OC de PW al formato del sistema
+function pwOCaOC(pwOC, franja, supOverride){
+  const sup = supOverride || mapearVendedor(pwOC.Vendedor) || 'María';
+  const p = PERSONAS[sup] || PERSONAS['María'];
+  const tipo = detectarTipo(pwOC.NombreCliente || '');
+  const n = new Date();
+  const hora = n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+
+  return {
+    id: Date.now() + Math.floor(Math.random()*1000),
+    pwKey: pwOC.pwKey,
+    sup: sup,
+    sector: pwOC.Sector || p.sector,
+    oc: pwOC.Numero || pwOC.pwKey,
+    proveedor: pwOC.NombreCliente || '',
+    items: pwOC.Notas || '',
+    prio: p.prio || 'media',
+    planif: p.planif || false,
+    franja: franja || 'manana',
+    estado: 'pendiente',
+    hora: hora,
+    nota: '',
+    notifEnviada: false,
+    pdfData: null,
+    pdfName: null,
+    fecha_carga: hoy(),
+    tipoCompra: tipo,
+    fuentePW: true,
+    importeTotal: pwOC.ImporteTotal || 0,
+  };
+}
+
+// Modal PW
+let pwOCSeleccionada = null;
+let pwFranjaSeleccionada = 'manana';
+
+function abrirModalPW(){
+  if(!ocsPWNuevas.length){ toast('No hay OC nuevas de Puente Web'); return; }
+  pwOCSeleccionada = null;
+  pwFranjaSeleccionada = 'manana';
+
+  const lista = document.getElementById('pw-oc-list');
+  lista.innerHTML = ocsPWNuevas.map(o => {
+    const fecha = o.FechaOrdenCompra ? o.FechaOrdenCompra.split('T')[0] : '';
+    const importe = o.ImporteTotal ? '$' + Number(o.ImporteTotal).toLocaleString('es-AR',{minimumFractionDigits:2}) : '';
+    return `<div class="pw-oc-item" onclick="selPWOC('${o.pwKey}',this)" data-key="${o.pwKey}">
+      <div class="pw-oc-num">${o.Numero || o.pwKey}</div>
+      <div class="pw-oc-prov">${o.NombreCliente || ''}</div>
+      <div class="pw-oc-meta">${o.Sector||''} · ${o.Vendedor||''} · ${fecha} · ${importe}</div>
+    </div>`;
+  }).join('');
+
+  // Franjas
+  const fDiv = document.getElementById('pw-franjas');
+  fDiv.innerHTML = Object.entries(FRANJAS).map(([k,v]) =>
+    `<button class="franja-btn${k==='manana'?' sel-manana':''}" data-f="${k}" onclick="selPWFranja('${k}',this)">${v.label}<span class="fsub">${v.sub}</span></button>`
+  ).join('');
+
+  document.getElementById('pw-franja-sel').style.display = 'none';
+  document.getElementById('modal-pw').classList.add('show');
+}
+
+function selPWOC(key, el){
+  document.querySelectorAll('.pw-oc-item').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+  pwOCSeleccionada = ocsPWNuevas.find(o=>o.pwKey===key);
+  document.getElementById('pw-franja-sel').style.display = 'block';
+}
+
+function selPWFranja(f, el){
+  pwFranjaSeleccionada = f;
+  document.querySelectorAll('#pw-franjas .franja-btn').forEach(b=>{
+    b.className='franja-btn';
+    if(b.dataset.f===f) b.classList.add('sel-'+f);
+  });
+}
+
+function cerrarModalPW(){
+  document.getElementById('modal-pw').classList.remove('show');
+  pwOCSeleccionada = null;
+}
+
+function confirmarPW(){
+  if(!pwOCSeleccionada){ toast('Seleccioná una OC'); return; }
+  const supMapeado = mapearVendedor(pwOCSeleccionada.Vendedor);
+  const oc = pwOCaOC(pwOCSeleccionada, pwFranjaSeleccionada, supMapeado);
+
+  // Si es dudosa, mostrar modal de clasificación
+  if(oc.tipoCompra === 'dudosa'){
+    cerrarModalPW();
+    pendienteOC = oc;
+    document.getElementById('modal-prov').textContent = oc.proveedor;
+    document.getElementById('modal-oc').classList.add('show');
+    return;
+  }
+
+  cerrarModalPW();
+  procesarCarga(oc);
+  toast('OC de Puente Web agregada ✓');
+}
+
+// Banner de OC nuevas de PW
+function bannerPWNuevas(){
+  if(!ocsPWNuevas.length) return '';
+  return `<div class="banner-pw-new">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--blue);">
+          📋 ${ocsPWNuevas.length} OC aprobada${ocsPWNuevas.length>1?'s':''} en Puente Web
+        </div>
+        <div style="font-size:11px;color:#555;margin-top:2px;">
+          ${ocsPWNuevas.map(o=>o.Numero||o.pwKey).join(' · ')}
+        </div>
+      </div>
+      <button class="btn-sm" style="border-color:#a0bcdf;color:var(--blue);white-space:nowrap;flex-shrink:0;"
+        onclick="abrirModalPW()">Ver OC →</button>
+    </div>
+  </div>`;
 }
 
 // ── GEMINI ───────────────────────────────────────────────────
@@ -377,7 +584,12 @@ function av(nombre){const p=PERSONAS[nombre]||{color:'#E6F1FB',tc:'#185FA5'};ret
 function now(){const n=new Date();return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function ftag(f){const fr=FRANJAS[f]||FRANJAS.manana;return`<span class="badge ${fr.cls}">${fr.label}</span>`;}
-function tipoBadge(o){if(o.tipoCompra==='externa')return'<span class="badge b-ext">Externa</span>';if(o.tipoCompra==='dudosa')return'<span class="badge b-dud">Sin clasificar</span>';return'';}
+function tipoBadge(o){
+  if(o.fuentePW) return '<span class="badge b-pw">Puente Web</span>';
+  if(o.tipoCompra==='externa')return'<span class="badge b-ext">Externa</span>';
+  if(o.tipoCompra==='dudosa')return'<span class="badge b-dud">Sin clasificar</span>';
+  return'';
+}
 
 function keyBanner(){
   if(GEMINI_KEY)return'';
@@ -476,7 +688,6 @@ function cargarOC(){
   if(!prio){alert('Seleccioná la prioridad.');return;}
   const p=PERSONAS[rol];
   const datos={id:Date.now(),sup:rol,sector:p.sector,oc:extracted.numero_oc,proveedor:extracted.proveedor,items:extracted.items,prio,planif:p.planif,franja,estado:'pendiente',hora:now(),nota:'',notifEnviada:false,pdfData:extracted.pdfData||null,pdfName:extracted.pdfName||null,fecha_carga:hoy()};
-  // Usar detección de Gemini si está disponible, sino usar la local
   const tipo=extracted.tipoGemini||detectarTipo(extracted.proveedor);
   if(tipo==='local'){
     datos.tipoCompra='local';procesarCarga(datos);
@@ -535,7 +746,7 @@ function ocCard(o,editable){
     <div class="card-items">${o.items||''}</div>
     ${alHtml}${dudHtml}
     ${o.nota?`<div class="card-nota">📋 ${o.nota}</div>`:''}
-    <div class="card-footer">Cargada: ${o.hora}</div>
+    <div class="card-footer">Cargada: ${o.hora}${o.fuentePW?' · Puente Web':''}</div>
     ${acc?`<div class="card-actions">${acc}</div>`:''}
   </div>`;
 }
@@ -560,7 +771,7 @@ function guillermoCard(o){
   const pdfBtn=o.pdfData?`<button class="btn-sm" style="padding:9px;font-size:12px;" onclick="descargarPDF(${o.id})">📄 OC</button>`:'';
   return`<div class="oc-card ${bc}">
     <div class="card-top"><span class="card-oc">${o.oc} / ${o.proveedor}</span>
-      <div class="badges"><span class="badge ${pc}">${pl}</span>${ftag(o.franja)}<span class="badge ${ESTADOS[o.estado].cls}">${ESTADOS[o.estado].label}</span>${o.notifEnviada?'<span class="badge b-comprado">WPP ✓</span>':''}</div>
+      <div class="badges"><span class="badge ${pc}">${pl}</span>${ftag(o.franja)}<span class="badge ${ESTADOS[o.estado].cls}">${ESTADOS[o.estado].label}</span>${o.notifEnviada?'<span class="badge b-comprado">WPP ✓</span>':''}${o.fuentePW?'<span class="badge b-pw">PW</span>':''}</div>
     </div>
     <div class="card-meta">${o.sector} · ${o.sup} · ${o.hora}</div>
     <div class="card-items" style="margin-bottom:8px;">${o.items||''}</div>
@@ -574,6 +785,7 @@ function formCarga(){
   const p=PERSONAS[rol];
   return`<div class="card">
     ${keyBanner()}
+    ${bannerPWNuevas()}
     <div class="fr"><label>1. Subí el PDF de la OC</label>
       <div class="upload-area" id="upload-area" onclick="document.getElementById('pfi').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="event.preventDefault();this.classList.remove('drag');handlePDF(event.dataTransfer.files[0])">
         <div class="upload-icon">📄</div><div class="upload-txt">Tocá para subir la OC en PDF</div><div class="upload-sub">O arrastrá el archivo acá</div>
@@ -631,9 +843,8 @@ function renderView(){
     html+=formCarga();
     html+=`<div class="sec-title">Mis OC activas hoy</div>`;
     html+=misActivas.length?misActivas.map(o=>ocCard(o,'self')).join(''):'<div class="empty">No tenés OC activas.</div>';
-    // Si es carga_coord, agregar tablero de coordinación debajo
     if(p.rol==='carga_coord'){
-      let listaCoord=sorted(ocs); // incluye todas: locales, externas, dudosas
+      let listaCoord=sorted(ocs);
       const dudosasCoord=ocs.filter(o=>o.tipoCompra==='dudosa');
       html+=`<div class="sec-title" style="margin-top:1.5rem;">Tablero de coordinación</div>
       ${dudosasCoord.length?`<div class="banner purple"><div class="banner-title purple">❓ ${dudosasCoord.length} OC sin clasificar</div></div>`:''}
@@ -655,7 +866,7 @@ function renderView(){
     showOnly('carga');
   }
 
-  // ── VISTA COORDINACIÓN (María, Gerónimo) ──
+  // ── VISTA COORDINACIÓN ──
   else if(p.rol==='coord'){
     let lista=sorted(ocs);
     if(filtro==='alta') lista=lista.filter(o=>o.prio==='alta');
@@ -666,7 +877,6 @@ function renderView(){
     else if(filtro==='alerta') lista=lista.filter(o=>o.alerta);
     else if(filtro==='externa') lista=lista.filter(o=>o.tipoCompra==='externa');
     else if(filtro==='dudosa') lista=lista.filter(o=>o.tipoCompra==='dudosa');
-
     const dudosas=ocs.filter(o=>o.tipoCompra==='dudosa');
     let html='';
     if(dudosas.length) html+=`<div class="banner purple"><div class="banner-title purple">❓ ${dudosas.length} OC sin clasificar</div><div class="banner-sub purple">Estas OC no están en la lista de Guillermo hasta que se clasifiquen.</div></div>`;
@@ -698,7 +908,6 @@ function renderView(){
     const activas=sorted(ocs.filter(o=>o.estado!=='comprado'&&o.tipoCompra!=='externa'&&o.tipoCompra!=='dudosa'));
     const compradas=ocs.filter(o=>o.estado==='comprado');
     const sinStock=activas.filter(o=>o.estado==='nodisponible');
-
     let html=`<div class="stats">
       <div class="stat"><div class="stat-num">${activas.length}</div><div class="stat-label">A resolver</div></div>
       <div class="stat"><div class="stat-num" style="color:var(--red)">${activas.filter(o=>o.franja==='ya').length}</div><div class="stat-label">Ir y volver</div></div>
@@ -706,22 +915,19 @@ function renderView(){
       <div class="stat"><div class="stat-num" style="color:var(--green)">${compradas.length}</div><div class="stat-label">Listas</div></div>
     </div>
     <button class="ruta-btn" onclick="abrirRuta()">🗺️ Ver ruta del día en Google Maps</button>`;
-
     if(sinStock.length) html+=`<div class="banner red"><div class="banner-title red">${sinStock.length} OC sin stock — notificar al supervisor</div><div class="banner-sub red">Usá el botón WPP en cada tarjeta.</div></div>`;
-
     const grupos=Object.entries(FRANJAS).map(([k,fr])=>{
       const g=activas.filter(o=>o.franja===k);
       if(!g.length)return'';
       return`<div class="franja-div" style="color:${fr.tc};">${fr.label} — ${fr.sub}</div>${g.map(o=>guillermoCard(o)).join('')}`;
     }).join('');
-
     html+=grupos||'<div class="empty">Todo comprado por hoy 🎉</div>';
     if(compradas.length) html+=`<div class="franja-div" style="color:var(--green);margin-top:1.5rem;">Compradas hoy</div>${compradas.map(o=>guillermoCard(o)).join('')}`;
     document.getElementById('view-guillermo').innerHTML=html;
     showOnly('guillermo');
   }
 
-  // ── VISTA CONTROL (Federico, Bruno) ──
+  // ── VISTA CONTROL ──
   else if(p.rol==='control'){
     let lista=sorted(ocs);
     if(filtro==='alta') lista=lista.filter(o=>o.prio==='alta');
@@ -732,7 +938,6 @@ function renderView(){
     else if(filtro==='externa') lista=lista.filter(o=>o.tipoCompra==='externa');
     else if(filtro==='dudosa') lista=lista.filter(o=>o.tipoCompra==='dudosa');
     else if(filtro==='comprado') lista=lista.filter(o=>o.estado==='comprado');
-
     const dudosas=ocs.filter(o=>o.tipoCompra==='dudosa');
     let html='';
     if(dudosas.length) html+=`<div class="banner purple"><div class="banner-title purple">❓ ${dudosas.length} OC sin clasificar — requieren atención</div><div class="banner-sub purple">No están en la lista de Guillermo hasta clasificarlas.</div></div>`;
@@ -763,7 +968,10 @@ function renderView(){
 window.addEventListener('load',()=>{
   renderRoleBtns();
   renderView();
-  setTimeout(escucharOCs,500);
+  setTimeout(()=>{
+    escucharOCs();
+    escucharOCsPW();
+  },500);
 });
 </script>
 </body>
