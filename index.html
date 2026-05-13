@@ -991,13 +991,21 @@ function generarPDFOC(o) {
       </tr>`).join('');
   } else {
     const itemsStr = o.Items || o.items || '';
-    itemsStr.split(' | ').filter(Boolean).forEach((item, i) => {
-      itemsHTML += `
-        <tr style="background:${i%2===0?'#fff':'#f8f9fa'};">
-          <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;">${i+1}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;" colspan="4">${item}</td>
-        </tr>`;
-    });
+itemsStr.split(' | ').filter(Boolean).forEach((item, i) => {
+  const m = item.match(/^(\d+(?:[.,]\d+)?)x\s+(.+?)\s+\$([0-9.,]+)$/);
+  const cant = m ? m[1] : '';
+  const desc = m ? m[2] : item;
+  const pu = m ? parseFloat(m[3].replace(/\./g,'').replace(',','.')) : 0;
+  subtotal += pu * (parseFloat(cant)||1);
+  itemsHTML += `
+    <tr style="background:${i%2===0?'#fff':'#f8f9fa'};">
+      <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;">${i+1}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;">${desc}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;text-align:center;">${cant}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;text-align:right;">${pu>0?'$ '+fmt(pu):''}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e8edf2;font-size:11px;text-align:right;">${pu>0?'$ '+fmt(pu*(parseFloat(cant)||1)):''}</td>
+    </tr>`;
+});
   }
 
   const html = `<!DOCTYPE html>
