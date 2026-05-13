@@ -967,7 +967,7 @@ function renderView(){
 }
 
 // ── GENERADOR PDF OC ─────────────────────────────────────────
-function generarPDFOC(o) {
+function generarPDFOC(o) {   // Buscar datos frescos de ordenesCompra si viene de PW   if(o.pwKey) {     const fresco = ocsPW.find(x => x.pwKey === o.pwKey);     if(fresco) o = {...o, ...fresco};   }
   const items = o.ItemsList || [];
   const fecha = o.FechaOrdenCompra ? o.FechaOrdenCompra.split('T')[0].split('-').reverse().join('/') : '';
   const fechaEntrega = o.FechaEntrega ? o.FechaEntrega.split('T')[0].split('-').reverse().join('/') : '';
