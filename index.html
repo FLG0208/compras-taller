@@ -387,7 +387,7 @@ async function hacerLogin(){
 
   if(!loginInput || !passInput){ errDiv.style.display='block'; errDiv.textContent='Completá usuario y contraseña.'; return; }
 
-  const hashIngresado = md5(passInput);
+  const hashIngresado = md5(unescape(encodeURIComponent(passInput)));
 
   try {
     const doc = await db.collection('usuarios').doc(loginInput).get();
